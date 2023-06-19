@@ -237,6 +237,7 @@ uint32_t calculate_result(uint16_t prev_block, uint16_t tx_commit, uint16_t hght
 
 void displayNonceTry(uint32_t nonce_val)
 {
+
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK); // White characters on black background
   tft.setFreeFont(MIDBIGFONT);
@@ -311,15 +312,16 @@ void loop()
 
             block_hash = calculate_result(prev_block, tx_commit, height_val, time_val, nonce_val);
 
-            for (; !verify && block_hash > nonce_or_hash_val && nonce_val < 1000000; nonce_val++) {
-              displayNonceTry(nonce_val);
+            for (; !verify && block_hash > nonce_or_hash_val && nonce_val < 1000000;) {
+              nonce_val++;
+              displayNonceTry(nonce_val );
               block_hash = calculate_result(prev_block, tx_commit, height_val, time_val, nonce_val);
               
               Serial.print("found hash:");
               Serial.print(block_hash);
               Serial.print(" .. looking for under");
-              Serial.print(nonce_or_hash_val);
-              delay(500);
+              Serial.println(nonce_or_hash_val);
+              delay(50);
             }
             
             if (verify) {
