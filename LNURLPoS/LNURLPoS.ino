@@ -154,95 +154,94 @@ void displayCalc(uint8_t stage, bool verify)
   tft.setCursor(10, 35);
   switch (stage) {
     case 0:
-      tft.print("Verify?");
-      len_limit = 1;
-      break;
-    case 1:
-      tft.print("Prev Block?");
+      tft.print("Prev Block");
       len_limit = 6;
       break;
-    case 2:
+    case 1:
       tft.print("Tx Commit?");
       len_limit = 4;
       break;
-    case 3:
+    case 2:
       tft.print("Height?");
       len_limit = 2;
       break;
-    case 4:
+    case 3:
       tft.print("Time?");
       len_limit = 4;
       break;
+    case 4:
+      tft.print("Target?");
+      len_limit = 6;
+      break;
     case 5:
-      if (verify) {
-        tft.print("Nonce?");
-      } else {
-        tft.print("Difficulty?");
-      }
+      tft.print("Nonce?");
       len_limit = 6;
       break;
     case 6:
-      if (verify) {
-        tft.print("Hash:");
-      } else
-        tft.print("Good Nonce:");
+      tft.print("Nonce:");
+      len_limit = 6;
+      break;
+    case 7:
+      tft.print("Blockhash:");
+      len_limit = 6;
       break;
     default:
       abort();
   }
 
-  if (inputs.length() < len_limit && stage != 6)
+  if (inputs.length() < len_limit && stage != 6 && stage != 7)
     inputs += virtkey;
 
   tft.setFreeFont(BIGFONT);
   tft.setCursor(50, 120);
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
 
-  /* If it's stage 0, print Y/N */
-  if (stage == 0 && inputs.length() > 0) {
-    if (convert_input(inputs) == 0) {
-      tft.setTextColor(TFT_RED, TFT_BLACK);
-      tft.println("N");
-    } else
-      tft.println("Y");
-  } else
-    tft.println(inputs);
+  tft.println(inputs);
 }
 
-uint32_t calculate_result(uint16_t prev_block, uint16_t tx_commit, uint16_t hght, uint16_t time_val, uint32_t nonce_val)
+uint32_t calculate_result(uint16_t prev_block, uint16_t tx_commit, uint16_t hght, uint16_t target, uint16_t time_val, uint32_t nonce_val)
 {
-  uint8_t hashresult[20];
+  uint8_t hashresult[20], hr, nonce[4];
   uint32_t result;
   uint32_t accum;
   RMD160 h;
-  
+
+  for (int i = 0; i < 4; i++) {
+    nonce[i] = ((nonce_val >> (i * 8)) & 0xff);
+  }
   h.begin();
   h.write((uint8_t *)"BTC-LARP:", 8);
-  h.write(prev_block);
-  h.write(tx_commit);
-  h.write(hght);
-  h.write(time_val);
-  h.write(nonce_val);
+  h.write(highByte(prev_block));
+  h.write(lowByte(prev_block));
+  h.write(highByte(tx_commit));
+  h.write(lowByte(tx_commit));
+  h.write(highByte(hght));
+  h.write(lowByte(hght));
+  h.write(highByte(target));
+  h.write(lowByte(target));
+  h.write(highByte(time_val));
+  h.write(lowByte(time_val));
+  h.write(nonce, 4);
   h.end(hashresult);
 
   accum = 1;
-  for (int i = 0; i < 3; i++) {
-    result += accum * hashresult[i];
+  for (int i = 0; i < 5; i++) {
+    hr = hashresult[i];
+    result += accum * hr;
     accum = accum * 255;
   }
-
-  // there's only 10 ^ 7 - 1 options
-  return result % 1000000;
+  
+  return result;
 }
 
-void displayNonceTry(uint32_t nonce_val)
+void displayNonceTry(uint32_t block_hash, uint32_t low_nonce, uint32_t nonce_val)
 {
 
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK); // White characters on black background
-  tft.setFreeFont(MIDBIGFONT);
-  tft.setCursor(10, 45);
-  tft.print("Trying...");
+  tft.setFreeFont(SMALLFONT);
+  tft.setCursor(10, 35);
+  tft.printf("%d @ %d\n", block_hash, low_nonce);
   tft.setFreeFont(BIGFONT);
   tft.setCursor(50, 120);
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
@@ -252,16 +251,19 @@ void displayNonceTry(uint32_t nonce_val)
 void loop()
 {
   uint32_t prev_block;
-  uint32_t nonce_or_hash_val;
+  uint32_t nonce, low_nonce;
   uint16_t time_val;
   uint16_t height_val;
   uint16_t tx_commit;
+  uint16_t target;
   uint8_t stage = 0;
   bool verify;
+  uint32_t block_hash, lowest;
+  uint32_t nonce_try;
 
   digitalWrite(4, HIGH);
   inputs = "";
-  prev_block = nonce_or_hash_val = time_val = height_val = tx_commit = 0;
+  prev_block = nonce = target = time_val = height_val = tx_commit = 0;
   displayCalc(stage, false);
 
   for (;;)
@@ -273,72 +275,83 @@ void loop()
       {
           switch (stage) {
             case 0:
-              verify = (convert_input(inputs) != 0);
+              prev_block = convert_input(inputs);
+              inputs = "";
               break;
             case 1:
-              prev_block = convert_input(inputs);
+              tx_commit = convert_input(inputs);
+              inputs = "";
               break;
             case 2:
-              tx_commit = convert_input(inputs);
+              height_val = convert_input(inputs);
+              inputs = "";
               break;
             case 3:
-              height_val = convert_input(inputs);
+              time_val = convert_input(inputs);
+              inputs = "";
               break;
             case 4:
-              time_val = convert_input(inputs);
+              target = convert_input(inputs);
+              inputs = "";
               break;
             case 5:
-              nonce_or_hash_val = convert_input(inputs);
+              nonce = convert_input(inputs);
+              
+              if (nonce > 0) {
+                block_hash = calculate_result(prev_block, tx_commit, height_val, target, time_val, nonce);
+                /* Verifying... skip stage 6! */
+                stage++;
+                inputs = String(block_hash);
+              } else {
+                nonce_try = 1;
+                block_hash = lowest = 999999;
+                while (block_hash > target && nonce_try < 1000000) {
+                  nonce_try++;
+
+                  if (block_hash < lowest){
+                    lowest = block_hash;
+                    low_nonce = nonce_try;
+                  }
+                  if (nonce_try % 999 == 0)
+                    displayNonceTry(lowest, low_nonce, nonce_try);
+                  block_hash = calculate_result(prev_block, tx_commit, height_val, target, time_val, nonce_try);
+
+                  delayMicroseconds(1500);
+                  key = keypad.getKey();
+                  if (key != NO_KEY) {
+                    key = NO_KEY;
+                    inputs = "";
+                    stage = 7;
+                    break;
+                  }    
+                  if (block_hash > target) {
+                    inputs = String(0);
+                  } else {
+                    // display the winning nonce!
+                    inputs = String(nonce_try);
+                  }
+                }
+              }
               break;
             case 6:
-              // We do nothing;
+              inputs = String(block_hash);
+              break;
+            case 7:
+              inputs = "";
               break;
           }
           
           stage++;
-          inputs = "";
           virtkey = "";
           
-          if (stage == 6) {
-            uint32_t nonce_val;
-            uint32_t block_hash;
-
-            block_hash = 0;
-            if (verify) {
-              nonce_val = nonce_or_hash_val;
-            } else {
-              nonce_val = 0;
-            }
-
-            block_hash = calculate_result(prev_block, tx_commit, height_val, time_val, nonce_val);
-
-            for (; !verify && block_hash > nonce_or_hash_val && nonce_val < 1000000;) {
-              nonce_val++;
-              displayNonceTry(nonce_val );
-              block_hash = calculate_result(prev_block, tx_commit, height_val, time_val, nonce_val);
-              
-              Serial.print("found hash:");
-              Serial.print(block_hash);
-              Serial.print(" .. looking for under");
-              Serial.println(nonce_or_hash_val);
-              delay(50);
-            }
-            
-            if (verify) {
-              // set the inputs to the computed hash!
-              inputs = String(block_hash);
-            } else
-              // set the inputs to the winning nonce!
-              inputs = String(nonce_val);
-          }
-          if (stage == 7) {
+          if (stage > 7) {
             // we go back to the beginning!
             stage = 0;
           }
       }
       else if (key == '*')
       {
-        if (inputs.length() > 0) {
+        if (inputs.length() > 0 && stage != 6 && stage != 7) {
           String tmp = "";
           for (size_t i = 0; i < inputs.length() - 1; i++)
             tmp += inputs[i];
