@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        LNBits | Free Open Source Bitcoin Hardware Wallet
+    </title>
+
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="LARPMiner" />
+    <meta name="description" content="LARPMiner" />
+
+    <!--====== Favicon Icon ======-->
+    <link rel="shortcut icon" href="../../assets/images/favicon.ico" type="image/svg" />
+
+    <!-- ===== All CSS files ===== -->
+    <link rel="stylesheet" href="../../assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../../assets/css/animate.css" />
+    <link rel="stylesheet" href="../../assets/css/lineicons.css" />
+    <link rel="stylesheet" href="../../assets/css/ud-styles.css" />
+    <link rel="stylesheet" href="assets/css/base.css" />
+
+</head>
+
+<body>
+    <!-- ====== Header Start ====== -->
+    <header class="ud-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <nav class="navbar navbar-expand-lg">
+                        <a class="navbar-brand" href="index.html">
+                            <img src="../../assets/images/logo/logo.svg" style="width: 200px" alt="Logo" />
+                        </a>
+                        <button class="navbar-toggler">
+                            <span class="toggler-icon"> </span>
+                            <span class="toggler-icon"> </span>
+                            <span class="toggler-icon"> </span>
+                        </button>
+
+                        <div class="navbar-collapse">
+                            <ul id="nav" class="navbar-nav mx-auto">
+                                <li class="nav-item">
+                                    <a class="ud-menu-scroll" href="#home">Home</a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="ud-menu-scroll" href="#devices">Devices</a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="navbar-btn d-none d-sm-inline-block">
+                            <a href="https://github.com/niftynei/LARPMiner"
+                                rel="nofollow noopener" class="ud-main-btn ud-white-btn">
+                                Github
+                            </a>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- ====== Header End ====== -->
+
+    <!-- ====== Hero Start ====== -->
+    <section class="ud-hero" id="home">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ud-hero-content wow fadeInUp" data-wow-delay=".2s">
+                        <h1 class="ud-hero-title">
+                            Free Open-Source Bitcoin LARP Miner
+                        </h1>
+                        <p class="ud-hero-desc">
+                            Contruct your own  LARP Miner <br />
+                            Build from source code, or flash binaries directly from browser
+                        </p>
+                        <center>
+                            <div style="max-width: 700px" class="row ud-hero-buttons">
+                                <div class="col">
+                                    <a href="https://github.com/lnbits/hardware-wallet" rel="nofollow noopener"
+                                        class="ud-main-btn ud-white-btn">
+                                        Github
+                                    </a>
+                                </div>
+                                <div class="col">
+                                    <select id="binVersionOption" class="ud-main-btn ud-white-btn">
+                                        <option value="v0.1">Version 0.1</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <esp-web-install-button id="espInstallButton" manifest="./firmware/esp32/v0.4/manifest.json">
+                                        <button slot="activate" class="ud-main-btn ud-white-btn" data-toggle="tooltip"
+                                            data-placement="bottom" title="Flasn">Flash</button>
+                                    </esp-web-install-button>
+
+                                </div>
+
+                            </div>
+                        </center>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ====== Hero End ====== -->
+
+    <!-- ====== Back To Top Start ====== -->
+    <a href="javascript:void(0)" class="back-to-top">
+        <i class="lni lni-chevron-up"> </i>
+    </a>
+    <!-- ====== Back To Top End ====== -->
+
+    <!-- ====== All Javascript Files ====== -->
+    <script type="module" src="https://unpkg.com/esp-web-tools@8.0.6/dist/web/install-button.js?module"></script>
+    <script src="../../assets/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/wow.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script>
+        // ==== for menu scroll
+        const pageLink = document.querySelectorAll(".ud-menu-scroll");
+
+        pageLink.forEach((elem) => {
+            elem.addEventListener("click", (e) => {
+                e.preventDefault();
+                document.querySelector(elem.getAttribute("href")).scrollIntoView({
+                    behavior: "smooth",
+                    offsetTop: 1 - 60,
+                });
+            });
+        });
+
+        // section menu active
+        function onScroll(event) {
+            const sections = document.querySelectorAll(".ud-menu-scroll");
+            const scrollPos =
+                window.pageYOffset ||
+                document.documentElement.scrollTop ||
+                document.body.scrollTop;
+
+            for (let i = 0; i < sections.length; i++) {
+                const currLink = sections[i];
+                const val = currLink.getAttribute("href");
+                const refElement = document.querySelector(val);
+                const scrollTopMinus = scrollPos + 73;
+                if (
+                    refElement.offsetTop <= scrollTopMinus &&
+                    refElement.offsetTop + refElement.offsetHeight > scrollTopMinus
+                ) {
+                    document
+                        .querySelector(".ud-menu-scroll")
+                        .classList.remove("active");
+                    currLink.classList.add("active");
+                } else {
+                    currLink.classList.remove("active");
+                }
+            }
+        }
+
+        window.document.addEventListener("scroll", onScroll);
+    </script>
+
+    <script>
+        const versionDropdown = document.getElementById("binVersionOption")
+        const espInstallButton = document.getElementById("espInstallButton")
+        versionDropdown.addEventListener("change", () => {
+            espInstallButton.manifest = `./firmware/esp32/${versionDropdown.value}/manifest.json`;
+        }
+        );
+
+    </script>
+</body>
+
+</html>
