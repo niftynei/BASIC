@@ -14,13 +14,13 @@
     <meta name="description" content="LARPMiner" />
 
     <!--====== Favicon Icon ======-->
-    <link rel="shortcut icon" href="../../assets/images/favicon.ico" type="image/svg" />
+    <link rel="shortcut icon" href="assets/images/favicon.ico" type="image/svg" />
 
     <!-- ===== All CSS files ===== -->
-    <link rel="stylesheet" href="../../assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="../../assets/css/animate.css" />
-    <link rel="stylesheet" href="../../assets/css/lineicons.css" />
-    <link rel="stylesheet" href="../../assets/css/ud-styles.css" />
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/animate.css" />
+    <link rel="stylesheet" href="assets/css/lineicons.css" />
+    <link rel="stylesheet" href="assets/css/ud-styles.css" />
     <link rel="stylesheet" href="assets/css/base.css" />
 
 </head>
@@ -33,7 +33,7 @@
                 <div class="col-lg-12">
                     <nav class="navbar navbar-expand-lg">
                         <a class="navbar-brand" href="index.html">
-                            <img src="../../assets/images/logo/logo.svg" style="width: 200px" alt="Logo" />
+                            <img src="assets/images/logo/logo.svg" style="width: 200px" alt="Logo" />
                         </a>
                         <button class="navbar-toggler">
                             <span class="toggler-icon"> </span>
@@ -117,9 +117,9 @@
 
     <!-- ====== All Javascript Files ====== -->
     <script type="module" src="https://unpkg.com/esp-web-tools@8.0.6/dist/web/install-button.js?module"></script>
-    <script src="../../assets/js/bootstrap.bundle.min.js"></script>
-    <script src="../../assets/js/wow.min.js"></script>
-    <script src="../../assets/js/main.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/wow.min.js"></script>
+    <script src="assets/js/main.js"></script>
     <script>
         // ==== for menu scroll
         const pageLink = document.querySelectorAll(".ud-menu-scroll");
@@ -168,7 +168,7 @@
         const versionDropdown = document.getElementById("binVersionOption")
         const espInstallButton = document.getElementById("espInstallButton")
         versionDropdown.addEventListener("change", () => {
-            espInstallButton.manifest = `./firmware/esp32/${versionDropdown.value}/manifest.json`;
+            espInstallButton.manifest = `./firmware/esp32/${`versionDropdown`.value}/manifest.json`;
         }
         );
 
