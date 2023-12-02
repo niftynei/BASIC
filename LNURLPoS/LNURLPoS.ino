@@ -28,17 +28,15 @@ RTC_DATA_ATTR int bootCount = 0;
 
 #include "MyFont.h"
 
-#define BIGFONT &FreeMonoBold24pt7b
-#define MIDBIGFONT &FreeMonoBold18pt7b
-#define MIDFONT &FreeMonoBold12pt7b
-#define SMALLFONT &FreeMonoBold9pt7b
+#define BIGFONT &AllertaStencil_Regular24pt7b
+#define MIDBIGFONT &AllertaStencil_Regular18pt7b
+#define MIDFONT &AllertaStencil_Regular12pt7b
+#define SMALLFONT &AllertaStencil_Regular9pt7b
+#define BASE58FONT &arial24pt7b
 #define TINYFONT &TomThumb
 
 TFT_eSPI tft = TFT_eSPI();
 SHA256 h;
-
-// QR screen colours
-uint16_t qrScreenBgColour = tft.color565(qrScreenBrightness, qrScreenBrightness, qrScreenBrightness);
 
 //////////////KEYPAD///////////////////
 const byte rows = 4; //four rows
@@ -69,21 +67,25 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rows, cols);
 int checker = 0;
 char maxdig[20];
 
+#define B58_PURPLE 0x2043 /* 36, 9, 28 */
+
 //////////////MAIN///////////////////
 void logo()
 {
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_YELLOW, TFT_BLACK); // White characters on black background
-  tft.setFreeFont(BIGFONT);
-  tft.setCursor(7, 70);  // To be compatible with Adafruit_GFX the cursor datum is always bottom left
-  tft.print("Base58⛓🔓"); // Using tft.print means text background is NEVER rendered
+  tft.fillScreen(B58_PURPLE);
+  tft.setTextColor(TFT_WHITE, B58_PURPLE); // white characters on purple background
+  tft.setFreeFont(SMALLFONT);
+  tft.setCursor(10, 30);  // To be compatible with Adafruit_GFX the cursor datum is always bottom left
+  tft.print("Base58's LARP"); // Using tft.print means text background is NEVER rendered
 
-  tft.setTextColor(TFT_WHITE, TFT_BLACK); // Green characters on black background
+  tft.setTextColor(TFT_YELLOW, B58_PURPLE);
   tft.setFreeFont(MIDBIGFONT);
-  tft.setCursor(42, 90);          // To be compatible with Adafruit_GFX the cursor datum is always bottom left
-  tft.print("LARP Hash"); // Using tft.print means text background is NEVER rendered
-  tft.setTextColor(TFT_GREEN, TFT_BLACK);
-  tft.print(" Verifier");
+  tft.setCursor(10, 70);
+  tft.print("BASIC");
+  tft.setCursor(10, 100);
+  tft.setFreeFont(SMALLFONT);
+  tft.setTextColor(TFT_WHITE, B58_PURPLE);
+  tft.print("machine"); // Using tft.print means text background is NEVER rendered
 }
 
 void setup(void)
@@ -148,13 +150,13 @@ void displayCalc(uint8_t stage, bool verify)
 {
   uint8_t len_limit;
   
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_WHITE, TFT_BLACK); // White characters on black background
+  tft.fillScreen(B58_PURPLE);
+  tft.setTextColor(TFT_WHITE, B58_PURPLE); // White characters on black background
   tft.setFreeFont(MIDBIGFONT);
   tft.setCursor(10, 35);
   switch (stage) {
     case 0:
-      tft.print("Prev Block");
+      tft.print("Prev Block?");
       len_limit = 6;
       break;
     case 1:
@@ -162,26 +164,22 @@ void displayCalc(uint8_t stage, bool verify)
       len_limit = 4;
       break;
     case 2:
-      tft.print("Height?");
-      len_limit = 2;
-      break;
-    case 3:
       tft.print("Time?");
       len_limit = 4;
       break;
-    case 4:
+    case 3:
       tft.print("Target?");
       len_limit = 6;
       break;
-    case 5:
+    case 4:
       tft.print("Nonce?");
       len_limit = 6;
       break;
-    case 6:
+    case 5:
       tft.print("Nonce:");
       len_limit = 6;
       break;
-    case 7:
+    case 6:
       tft.print("Blockhash:");
       len_limit = 6;
       break;
@@ -189,17 +187,19 @@ void displayCalc(uint8_t stage, bool verify)
       abort();
   }
 
-  if (inputs.length() < len_limit && stage != 6 && stage != 7)
+  if (inputs.length() < len_limit && stage != 5 && stage != 6)
     inputs += virtkey;
 
   tft.setFreeFont(BIGFONT);
-  tft.setCursor(50, 120);
-  tft.setTextColor(TFT_GREEN, TFT_BLACK);
+  tft.setCursor(10, 120);
+  tft.setTextColor(TFT_YELLOW, B58_PURPLE);
 
   tft.println(inputs);
 }
 
-uint32_t calculate_result(uint16_t prev_block, uint16_t tx_commit, uint16_t hght, uint16_t target, uint16_t time_val, uint32_t nonce_val)
+// 103554 (12:34)
+// ...... (12:01)
+uint32_t calculate_result(uint16_t prev_block, uint16_t tx_commit, uint16_t target, uint16_t time_val, uint32_t nonce_val)
 {
   uint8_t hashresult[20], hr, nonce[4];
   uint32_t result;
@@ -215,12 +215,10 @@ uint32_t calculate_result(uint16_t prev_block, uint16_t tx_commit, uint16_t hght
   h.write(lowByte(prev_block));
   h.write(highByte(tx_commit));
   h.write(lowByte(tx_commit));
-  h.write(highByte(hght));
-  h.write(lowByte(hght));
-  h.write(highByte(target));
-  h.write(lowByte(target));
   h.write(highByte(time_val));
   h.write(lowByte(time_val));
+  h.write(highByte(target));
+  h.write(lowByte(target));
   h.write(nonce, 4);
   h.end(hashresult);
 
@@ -237,15 +235,31 @@ uint32_t calculate_result(uint16_t prev_block, uint16_t tx_commit, uint16_t hght
 void displayNonceTry(uint32_t block_hash, uint32_t low_nonce, uint32_t nonce_val)
 {
 
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_WHITE, TFT_BLACK); // White characters on black background
+  tft.fillScreen(B58_PURPLE);
+  tft.setTextColor(TFT_WHITE, B58_PURPLE);
   tft.setFreeFont(SMALLFONT);
-  tft.setCursor(10, 35);
-  tft.printf("%d @ %d\n", block_hash, low_nonce);
+  tft.setCursor(10, 30);
+  tft.printf("Lowest Hash: %d", block_hash); 
+  
+  tft.setTextColor(TFT_YELLOW, B58_PURPLE);
+  tft.setFreeFont(MIDFONT);
+  tft.setCursor(10, 70);
+  tft.printf("Tries: %d", nonce_val);
+  tft.setCursor(10, 100);
+  tft.setFreeFont(SMALLFONT);
+  tft.setTextColor(TFT_WHITE, B58_PURPLE);
+  tft.printf("Best Nonce: %d", low_nonce);
+}
+
+void displayTryCanceled()
+{
+
+  tft.fillScreen(B58_PURPLE);
   tft.setFreeFont(BIGFONT);
   tft.setCursor(50, 120);
-  tft.setTextColor(TFT_GREEN, TFT_BLACK);
-  tft.println(nonce_val);
+  tft.setTextColor(TFT_WHITE, B58_PURPLE);
+  tft.println("Exit...");
+  delay(1500);
 }
 
 void loop()
@@ -253,7 +267,6 @@ void loop()
   uint32_t prev_block;
   uint32_t nonce, low_nonce;
   uint16_t time_val;
-  uint16_t height_val;
   uint16_t tx_commit;
   uint16_t target;
   uint8_t stage = 0;
@@ -263,7 +276,7 @@ void loop()
 
   digitalWrite(4, HIGH);
   inputs = "";
-  prev_block = nonce = target = time_val = height_val = tx_commit = 0;
+  prev_block = nonce = target = time_val = tx_commit = 0;
   displayCalc(stage, false);
 
   for (;;)
@@ -283,27 +296,23 @@ void loop()
               inputs = "";
               break;
             case 2:
-              height_val = convert_input(inputs);
-              inputs = "";
-              break;
-            case 3:
               time_val = convert_input(inputs);
               inputs = "";
               break;
-            case 4:
+            case 3:
               target = convert_input(inputs);
               inputs = "";
               break;
-            case 5:
+            case 4:
               nonce = convert_input(inputs);
               
               if (nonce > 0) {
-                block_hash = calculate_result(prev_block, tx_commit, height_val, target, time_val, nonce);
+                block_hash = calculate_result(prev_block, tx_commit, target, time_val, nonce);
                 /* Verifying... skip stage 6! */
                 stage++;
                 inputs = String(block_hash);
               } else {
-                nonce_try = 1;
+                nonce_try = 0;
                 block_hash = lowest = 999999;
                 while (block_hash > target && nonce_try < 1000000) {
                   nonce_try++;
@@ -312,9 +321,9 @@ void loop()
                     lowest = block_hash;
                     low_nonce = nonce_try;
                   }
-                  if (nonce_try % 999 == 0)
+                  if (nonce_try % 999 == 0 || nonce_try == 1)
                     displayNonceTry(lowest, low_nonce, nonce_try);
-                  block_hash = calculate_result(prev_block, tx_commit, height_val, target, time_val, nonce_try);
+                  block_hash = calculate_result(prev_block, tx_commit, target, time_val, nonce_try);
 
                   delayMicroseconds(1500);
                   key = keypad.getKey();
@@ -322,6 +331,8 @@ void loop()
                     key = NO_KEY;
                     inputs = "";
                     stage = 7;
+                    displayTryCanceled();
+
                     break;
                   }    
                   if (block_hash > target) {
@@ -333,10 +344,10 @@ void loop()
                 }
               }
               break;
-            case 6:
+            case 5:
               inputs = String(block_hash);
               break;
-            case 7:
+            case 6:
               inputs = "";
               break;
           }
@@ -344,14 +355,14 @@ void loop()
           stage++;
           virtkey = "";
           
-          if (stage > 7) {
+          if (stage > 6) {
             // we go back to the beginning!
             stage = 0;
           }
       }
       else if (key == '*')
       {
-        if (inputs.length() > 0 && stage != 6 && stage != 7) {
+        if (inputs.length() > 0 && stage != 5 && stage != 6) {
           String tmp = "";
           for (size_t i = 0; i < inputs.length() - 1; i++)
             tmp += inputs[i];
@@ -396,10 +407,10 @@ void displayBatteryVoltage(bool forceUpdate)
       batteryPercentage = 100;
     }
 
-    int textColour = TFT_GREEN;
+    int textColour = TFT_YELLOW;
     if (batteryPercentage > 70)
     {
-      textColour = TFT_GREEN;
+      textColour = TFT_YELLOW;
     }
     else if (batteryPercentage > 30)
     {
@@ -410,7 +421,7 @@ void displayBatteryVoltage(bool forceUpdate)
       textColour = TFT_RED;
     }
 
-    tft.setTextColor(textColour, TFT_BLACK);
+    tft.setTextColor(textColour, B58_PURPLE);
     tft.setFreeFont(SMALLFONT);
 
     int textXPos = 195;
@@ -420,7 +431,7 @@ void displayBatteryVoltage(bool forceUpdate)
     }
 
     // Clear the area of the display where the battery level is shown
-    tft.fillRect(textXPos - 2, 0, 50, 20, TFT_BLACK);
+    tft.fillRect(textXPos - 2, 0, 50, 20, B58_PURPLE);
     tft.setCursor(textXPos, 16);
 
     // Is the device charging?
