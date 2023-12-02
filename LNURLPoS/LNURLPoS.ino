@@ -102,7 +102,7 @@ void setup(void)
   if (bootCount == 0)
   {
     logo();
-    delay(1500);
+    delay(5000);
   }
 
   ++bootCount;
