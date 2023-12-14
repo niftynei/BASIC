@@ -7,4 +7,4 @@ arduino-cli upgrade
 arduino-cli lib install WebSockets ArduinoJson Keypad uBitcoin
 arduino-cli compile \
     --library ./libraries/TFT_eSPI \
-    --build-path build --fqbn esp32:esp32:ttgo-lora32 basic
+    --build-path build --fqbn esp32:esp32:ttgo-lora32 basic/basic.ino
