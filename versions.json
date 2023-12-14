@@ -1,0 +1,7 @@
+{
+  "name": "basic",
+  "devices": [
+    "esp32"
+  ],
+  "versions": []
+}
