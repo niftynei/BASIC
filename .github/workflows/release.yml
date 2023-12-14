@@ -18,7 +18,7 @@ jobs:
 
       - uses: actions/checkout@v3
         with:
-          ref: main
+          ref: master
 
       - name: update version in repo
         env:
