@@ -20,6 +20,15 @@ To enter a number, and advance to the next input: press the `#` key.
 
 To erase a number: press the `*` key.
 
+## Installing with WebInstaller
+
+Thanks to @dni and @arcbtc we have a WebInstaller available for the LARP BASICs.
+
+Go to [https://basic.lnbits.com/](https://basic.lnbits.com/) to install the latest
+build on your own device!
+
+Note: You'll need Chrome or a Chromium browser that supports the WebInstaller protocol.
+
 
 ### Credit/props
 
